@@ -14,6 +14,7 @@ interface GeneratedIdea {
   projectTitle: string;
   briefDescription: string;
   keyFeatures: string[];
+  
   technicalStack: string[];
   
   potentialChallenges: string[];
@@ -60,7 +61,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
       ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2" {...props} />,
       li: ({node, ...props}) => <li className="ml-4" {...props} />,
       a: ({node, ...props}) => <a className="text-blue-500 hover:underline" {...props} />,
-      code: ({node, inline, ...props}) => 
+      code: ({inline, ...props}: React.HTMLAttributes<HTMLElement> & {inline?: boolean}) => 
         inline ? (
           <code className="bg-gray-200 rounded px-1" {...props} />
         ) : (
@@ -110,17 +111,27 @@ export default function HackathonIdeaGenerator() {
     }
   }, [isLoaded, userId, router]);
 
-  // If auth is not loaded or user is not authenticated, don't render the component
-  if (!isLoaded || !userId) {
-    return null;
-  }
-
   useEffect(() => {
     const storedIdeas = localStorage.getItem('savedIdeas');
     if (storedIdeas) {
       setSavedIdeas(JSON.parse(storedIdeas));
     }
   }, []);
+
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    };
+
+    scrollToBottom();
+  }, [chatMessages]);
+
+  // If auth is not loaded or user is not authenticated, don't render the component
+  if (!isLoaded || !userId) {
+    return null;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -284,18 +295,6 @@ export default function HackathonIdeaGenerator() {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
     }
   };
-
-  // Move useEffect outside of any conditional blocks
-  useEffect(() => {
-    const scrollToBottom = () => {
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
-    };
-
-    scrollToBottom();
-    // Add any necessary dependencies to the dependency array
-  }, [/* dependencies */]);
 
   const renderFormField = () => {
     const currentField = steps[currentStep - 1].field;
