@@ -285,6 +285,7 @@ export default function HackathonIdeaGenerator() {
     }
   };
 
+  // Move useEffect outside of any conditional blocks
   useEffect(() => {
     const scrollToBottom = () => {
       if (chatContainerRef.current) {
@@ -293,7 +294,8 @@ export default function HackathonIdeaGenerator() {
     };
 
     scrollToBottom();
-  }, []);
+    // Add any necessary dependencies to the dependency array
+  }, [/* dependencies */]);
 
   const renderFormField = () => {
     const currentField = steps[currentStep - 1].field;
