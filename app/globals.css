@@ -99,3 +99,16 @@
   background-size: 20px 20px;
   z-index: -1;
 }
+
+.explanation {
+  font-style: italic;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.time-range-explanation {
+  font-style: italic;
+  font-size: 0.9em;
+  color: var(--muted-foreground);
+  margin-left: 0.5rem;
+}
