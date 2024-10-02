@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { SignInButton, useAuth } from "@clerk/nextjs"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export default function HeroSection() {
-  const { isLoaded, isSignedIn } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
@@ -15,9 +13,7 @@ export default function HeroSection() {
   }, [])
 
   const handleStartHacking = () => {
-    if (isSignedIn) {
-      router.push('/ai')
-    }
+    router.push('/ai')
   }
 
   return (
@@ -48,23 +44,13 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {mounted && isLoaded && (
-            isSignedIn ? (
-              <Button 
-                size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={handleStartHacking}
-              >
-                Start hacking with AI
-              </Button>
-            ) : (
-              <SignInButton mode="modal">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Sign in to start hacking
-                </Button>
-              </SignInButton>
-            )
-          )}
+          <Button 
+            size="lg" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={handleStartHacking}
+          >
+            Start hacking with AI
+          </Button>
         </motion.div>
       </div>
     </section>

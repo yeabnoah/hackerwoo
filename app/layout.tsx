@@ -4,7 +4,6 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Provider from "@/provider/sessionProvider";
 import { ThemeProvider } from 'next-themes';
-import { ClerkProvider } from '@clerk/nextjs'
 import Navbar from './components/navbar';
 
 const fontSans = FontSans({
@@ -31,24 +30,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Provider>
-              <Navbar />
-              <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
-                {children}
-              </div>
-            </Provider>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(
+        "min-h-screen bg-background font-sans antialiased",
+        fontSans.variable
+      )}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Provider>
+            <Navbar />
+            <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
+              {children}
+            </div>
+          </Provider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
-
-

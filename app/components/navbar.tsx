@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { FiSun, FiMoon, FiMenu, FiX } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 const Navbar = () => {
   const [mounted, setMounted] = useState(false);
@@ -53,16 +52,6 @@ const Navbar = () => {
             >
               {mounted && theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md">
-                  Sign In
-                </button>
-              </SignInButton>
-            </SignedOut>
           </div>
           <div className="md:hidden flex items-center">
             <button
@@ -104,16 +93,6 @@ const Navbar = () => {
                 >
                   {mounted && theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
                 </button>
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md">
-                      Sign In
-                    </button>
-                  </SignInButton>
-                </SignedOut>
               </div>
             </div>
           </motion.div>

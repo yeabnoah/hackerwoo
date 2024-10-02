@@ -73,7 +73,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
 
 export default function HackathonIdeaGenerator() {
   const router = useRouter();
-  const { isLoaded, userId, sessionId, getToken } = useAuth();
+  // const { isLoaded, userId, sessionId, getToken } = useAuth();
 
   const [formData, setFormData] = useState({
     theme: '',
@@ -105,11 +105,7 @@ export default function HackathonIdeaGenerator() {
     { name: 'Team Members', explanation: 'add all your members here', field: 'teamMembers' },
   ];
 
-  useEffect(() => {
-    if (isLoaded && !userId) {
-      router.push('/');
-    }
-  }, [isLoaded, userId, router]);
+
 
   useEffect(() => {
     const storedIdeas = localStorage.getItem('savedIdeas');
@@ -128,10 +124,6 @@ export default function HackathonIdeaGenerator() {
     scrollToBottom();
   }, [chatMessages]);
 
-  // If auth is not loaded or user is not authenticated, don't render the component
-  if (!isLoaded || !userId) {
-    return null;
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -301,7 +293,7 @@ export default function HackathonIdeaGenerator() {
     const { name, explanation } = steps[currentStep - 1];
 
     return (
-      <div className=''>
+      <div className=' w-full'>
         <label htmlFor={currentField} className="block mb-2 font-medium text-foreground">
           {name}
           <span className="ml-2 text-sm italic text-muted-foreground">
@@ -443,12 +435,12 @@ export default function HackathonIdeaGenerator() {
           </ul>
         </div>
         
-        <button
+        {/* <button
           onClick={() => handleSaveIdea()}
           className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md flex items-center"
         >
           <FiSave className="mr-2" /> Save Idea
-        </button>
+        </button> */}
       </motion.div>
     );
   };
@@ -630,7 +622,7 @@ export default function HackathonIdeaGenerator() {
   };
 
   return (
-    <div className="sm:w-[90%] md:w-[60vw] lg:w-[50vw] mx-auto p-4 sm:p-6 md:p-8">
+    <div className="sm:w-[90vw] md:w-[90vw] lg:w-[90vw] mx-auto p-4 sm:p-6 md:p-8">
       {/* Progress bar and form */}
       {!showResults && (
         <>
