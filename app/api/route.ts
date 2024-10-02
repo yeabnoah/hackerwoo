@@ -66,7 +66,6 @@ export async function POST(req: Request) {
 					"targetAudience": "Description of the target audience",
 					"futureEnhancements": ["Enhancement 1", "Enhancement 2", "Enhancement 3"]
 				}`;
-
 			const result = await model.generateContent(prompt);
 			const response = await result.response;
 			const text = response.text();
@@ -155,10 +154,12 @@ export async function POST(req: Request) {
 			Task Breakdown:
 			${JSON.stringify(taskBreakdown, null, 2)}
 
-			Previous conversation:
+			Previous messages:
 			${messages.map((m: { role: string; content: string }) => `${m.role}: ${m.content}`).join('\n')}
 
-			Please provide a helpful response to the user's latest question or comment.`;
+			User's latest message: ${messages[messages.length - 1].content}
+
+			Please provide a helpful response to the user's latest message, considering the project idea and task breakdown.`;
 
 			const result = await model.generateContent(prompt);
 			const response = await result.response;

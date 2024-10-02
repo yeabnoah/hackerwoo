@@ -47,6 +47,7 @@ interface TaskBreakdown {
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  
 }
 
 const MarkdownRenderer = ({ content }: { content: string }) => (
@@ -95,6 +96,7 @@ export default function HackathonIdeaGenerator() {
   const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const steps = [
@@ -122,6 +124,10 @@ export default function HackathonIdeaGenerator() {
     };
 
     scrollToBottom();
+  }, [chatMessages]);
+
+  useEffect(() => {
+    console.log('Chat messages updated:', chatMessages);
   }, [chatMessages]);
 
 
@@ -256,11 +262,12 @@ export default function HackathonIdeaGenerator() {
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || isChatLoading) return;
 
-    const newMessage: ChatMessage = { role: 'user', content: chatInput };
-    setChatMessages(prev => [...prev, newMessage]);
+    const newUserMessage: ChatMessage = { role: 'user', content: chatInput };
+    setChatMessages(prev => [...prev, newUserMessage]);
     setChatInput('');
+    setIsChatLoading(true);
 
     try {
       const response = await fetch('/api', {
@@ -269,22 +276,33 @@ export default function HackathonIdeaGenerator() {
         body: JSON.stringify({
           action: 'chat',
           data: {
-            messages: [...chatMessages, newMessage],
+            messages: [...chatMessages, newUserMessage],
             idea: generatedIdea,
             taskBreakdown: taskBreakdown
           }
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+
       if (data.result) {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: data.result }]);
+        const newAssistantMessage: ChatMessage = { role: 'assistant', content: data.result };
+        setChatMessages(prev => [...prev, newAssistantMessage]);
       } else {
         throw new Error('No result in response');
       }
     } catch (error) {
       console.error('Error in chat:', error);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+      setChatMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }
+      ]);
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -375,7 +393,7 @@ export default function HackathonIdeaGenerator() {
 
     return (
       <motion.div 
-        className=" bg-card py-8 rounded-lg shadow-lg"
+        className=" bg-card py-8 rounded-lg shadow-lg px-5"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -455,7 +473,7 @@ export default function HackathonIdeaGenerator() {
 
     return (
       <motion.div
-        className=" bg-card py-8 rounded-lg shadow-lg"
+        className=" bg-card py-8 rounded-lg shadow-lg px-5"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -504,6 +522,63 @@ export default function HackathonIdeaGenerator() {
     );
   };
 
+  const renderChatComponent = () => {
+    return (
+      <motion.div
+        className="bg-card py-8 rounded-lg shadow-lg mb-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-bold mb-4 text-primary px-6">Chat with AI Assistant</h2>
+        <div 
+          ref={chatContainerRef}
+          className="h-80 overflow-y-auto mb-4 px-6"
+        >
+          {chatMessages.map((message, index) => (
+            <div 
+              key={index} 
+              className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
+            >
+              <div 
+                className={`inline-block p-3 rounded-lg ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-secondary text-secondary-foreground'
+                }`}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+          {isChatLoading && (
+            <div className="text-center">
+              <FiLoader className="animate-spin inline-block" />
+            </div>
+          )}
+        </div>
+        <form onSubmit={handleChatSubmit} className="px-6">
+          <div className="flex">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              className="flex-grow p-2 border rounded-l-md bg-input text-foreground"
+              placeholder="Ask a question about the project..."
+            />
+            <button
+              type="submit"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-r-md"
+              disabled={isChatLoading}
+            >
+              <FiSend />
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    );
+  };
+
   const renderResultsScreen = () => {
     return (
       <motion.div
@@ -512,15 +587,15 @@ export default function HackathonIdeaGenerator() {
         exit={{ opacity: 0 }}
         className="min-h-screen flex-1 bg-background"
       >
-        <div className="pt-5 max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
+        <div className="pt-5 max-w-7xl mx-auto p-6 sm:p-8 md:p-10">
           <button
             onClick={() => setShowResults(false)}
-            className="bg-secondary text-secondary-foreground px-4 p-2 rounded-md mb-4"
+            className="bg-secondary text-secondary-foreground px-4 p-2 rounded-md mb-6"
           > 
             Back to Form
           </button>
           
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
             {/* Left column */}
             <div className="w-full lg:w-1/2">
               {renderGeneratedIdea()}
@@ -528,16 +603,13 @@ export default function HackathonIdeaGenerator() {
 
             {/* Right column */}
             <div className="w-full lg:w-1/2">
-              {/* Chat component for larger screens */}
-              <div className="hidden lg:block">
+              {/* Chat component for medium and large screens */}
+              <div className="hidden sm:block mb-6">
                 {renderChatComponent()}
               </div>
-
-              {/* Task Breakdown */}
               {renderTaskBreakdown()}
-
-              {/* Chat component for smaller screens */}
-              <div className="lg:hidden">
+              {/* Chat component for small screens */}
+              <div className="block sm:hidden mt-6">
                 {renderChatComponent()}
               </div>
             </div>
@@ -573,50 +645,6 @@ export default function HackathonIdeaGenerator() {
             </div>
           )}
         </div>
-      </motion.div>
-    );
-  };
-
-  // New function to render the chat component
-  const renderChatComponent = () => {
-    return (
-      <motion.div
-        className="bg-card p-4 sm:p-6 md:p-8 rounded-lg shadow-lg mb-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-primary">Chat with hackwoo</h2>
-        <div ref={chatContainerRef} className="h-96 overflow-y-auto mb-4 p-4 bg-muted rounded-md">
-          {chatMessages.map((message, index) => (
-            <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-              <div className={`inline-block p-2 rounded-lg ${
-                message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-              }`}>
-                {message.role === 'user' ? (
-                  <span>{message.content}</span>
-                ) : (
-                  <MarkdownRenderer content={message.content} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        <form onSubmit={handleChatSubmit} className="flex">
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            className="flex-grow p-2 border rounded-l-md bg-input text-foreground"
-            placeholder="Ask about the project or tasks..."
-          />
-          <button
-            type="submit"
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-r-md"
-          >
-            <FiMessageSquare />
-          </button>
-        </form>
       </motion.div>
     );
   };
